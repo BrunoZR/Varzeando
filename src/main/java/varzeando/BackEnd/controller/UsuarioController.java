@@ -11,6 +11,7 @@ import varzeando.BackEnd.dto.RequestSegundoCadastro;
 import varzeando.BackEnd.models.Usuario;
 import varzeando.BackEnd.services.UsuarioService;
 
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -20,14 +21,15 @@ import java.util.List;
 public class UsuarioController {
     private final UsuarioService usuarioService;
     @PostMapping(path = "/login")
-    public ResponseEntity<Usuario> login(@RequestBody RequestLogin requestLogin){
+    public ResponseEntity<Boolean> login(@RequestBody RequestLogin requestLogin){
         if(usuarioService.autenticar(requestLogin))
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(true,HttpStatus.OK);
         else
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(false,HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @PostMapping(path = "/cadastro")
-    public ResponseEntity<Usuario> cadastro(@RequestBody RequestCadastro requestCadastro){
+    public ResponseEntity<Usuario> cadastro(@RequestBody RequestCadastro requestCadastro) throws ParseException {
+        usuarioService.verificaridade(requestCadastro.getDataNascimento());
         return new ResponseEntity<>(usuarioService.salvar(requestCadastro), HttpStatus.CREATED);
     }
  
@@ -39,4 +41,6 @@ public class UsuarioController {
     public ResponseEntity<Usuario> segundocadastro(@RequestBody RequestSegundoCadastro requestSegundoCadastro){
         return new ResponseEntity<>(usuarioService.salvardois(requestSegundoCadastro), HttpStatus.CREATED);
     }
+
+
 }

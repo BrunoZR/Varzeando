@@ -17,8 +17,14 @@ import varzeando.BackEnd.models.Usuario;
 import varzeando.BackEnd.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -27,12 +33,8 @@ public class UsuarioService{
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRepository usuarioRepository;
 
-    public Usuario findByNameOrThrowBadRequestException(String name){
-        return usuarioRepository.findByEmail(name);
-
-    }
     public boolean autenticar(RequestLogin requestLogin){
-        Usuario user =findByNameOrThrowBadRequestException(requestLogin.getEmail());
+        Usuario user =usuarioRepository.findByEmail(requestLogin.getEmail());
         if(passwordEncoder.matches(requestLogin.getPassword(),user.getPassword()))
             return true;
         else
@@ -43,6 +45,7 @@ public class UsuarioService{
     }
     public Usuario salvar(RequestCadastro requestCadastro){
         String passwordEncoded=passwordEncoder.encode(requestCadastro.getPassword());
+        if(!(usuarioRepository.existsByEmail(requestCadastro.getEmail())))
        return usuarioRepository.save(Usuario.builder()
                .name(requestCadastro.getName())
                .email(requestCadastro.getEmail())
@@ -50,6 +53,9 @@ public class UsuarioService{
                .dataNascimento(requestCadastro.getDataNascimento())
                .endereco(null)
                .posicao(null).build());
+        else throw new RuntimeException();
+
+
 
     }
     public Usuario salvardois(RequestSegundoCadastro requestSegundoCadastro){
@@ -64,5 +70,23 @@ public class UsuarioService{
         usuarioRepository.delete(user);
         return userFim;
     }
+    public Integer verificaridade(Date data) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        String x= sdf.format(data);
+        Date y=sdf.parse(x);
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(y);
+        int Anodata =calendar.get(calendar.YEAR);
+        int Mesdata =calendar.get(calendar.MONTH)+1;
+        int Diadata =calendar.get(calendar.DATE);
+      LocalDate localDate=LocalDate.of(Anodata,Mesdata,Diadata);
+      LocalDate dataAtual=LocalDate.now();
+        Period period=Period.between(localDate,dataAtual);
+        if(period.getYears()>18){
+            return period.getYears();
+        }
+        else
+            throw new RuntimeException();
+    }
 
-}
+    }

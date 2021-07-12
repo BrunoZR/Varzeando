@@ -6,6 +6,9 @@ import varzeando.BackEnd.models.Usuario;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Date;
 
 @AllArgsConstructor
@@ -13,10 +16,16 @@ import java.util.Date;
 @Builder
 @Getter
 public class RequestCadastro {
+
+    @Size(max = 50)
     private String name;
+
     @Email
+    @Size(max = 50)
     private String email;
+
     private String password;
+
     @JsonFormat(pattern = "dd/MM/yyyy")
     private Date dataNascimento;
 }
