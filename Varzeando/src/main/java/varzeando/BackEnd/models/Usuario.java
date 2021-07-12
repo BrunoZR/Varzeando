@@ -9,6 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Date;
 
@@ -24,12 +26,18 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty
+    @Size(max = 50)
     private String name;
 
+    @NotEmpty
     @Email
+    @Size(max = 50)
     private String email;
 
+    @NotEmpty
     private String password;
+
 
     @JsonFormat(pattern = "dd/MM/yyyy")
     private Date dataNascimento;
