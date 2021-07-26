@@ -5,9 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import varzeando.BackEnd.dto.RequestCadastro;
-import varzeando.BackEnd.dto.RequestLogin;
-import varzeando.BackEnd.dto.RequestSegundoCadastro;
+import varzeando.BackEnd.dto.request.RequestCadastro;
+import varzeando.BackEnd.dto.request.RequestLogin;
+import varzeando.BackEnd.dto.request.RequestNome;
+import varzeando.BackEnd.dto.request.RequestSegundoCadastro;
+import varzeando.BackEnd.dto.response.ResponseNome;
 import varzeando.BackEnd.models.Usuario;
 import varzeando.BackEnd.services.UsuarioService;
 
@@ -21,16 +23,13 @@ import java.util.List;
 public class UsuarioController {
     private final UsuarioService usuarioService;
     @PostMapping(path = "/login")
-    public ResponseEntity<Boolean> login(@RequestBody RequestLogin requestLogin){
-        if(usuarioService.autenticar(requestLogin))
-            return new ResponseEntity<>(true,HttpStatus.OK);
-        else
-            return new ResponseEntity<>(false,HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<Usuario> login(@RequestBody RequestLogin requestLogin) throws Exception {
+        return new ResponseEntity<>(usuarioService.autenticar(requestLogin),HttpStatus.OK);
     }
     @PostMapping(path = "/cadastro")
     public ResponseEntity<Usuario> cadastro(@RequestBody RequestCadastro requestCadastro) throws ParseException {
         usuarioService.verificaridade(requestCadastro.getDataNascimento());
-        return new ResponseEntity<>(usuarioService.salvar(requestCadastro), HttpStatus.CREATED);
+        return new ResponseEntity<>(usuarioService.salvar(requestCadastro),HttpStatus.CREATED);
     }
  
     @GetMapping
@@ -42,5 +41,9 @@ public class UsuarioController {
         return new ResponseEntity<>(usuarioService.salvardois(requestSegundoCadastro), HttpStatus.CREATED);
     }
 
-
+    @GetMapping(path = "/{Id}")
+    public ResponseEntity<ResponseNome> getNome(@PathVariable ("Id") Long Id){
+        ResponseNome responseNome = new ResponseNome(usuarioService.findUsuario(Id));
+        return ResponseEntity.ok(responseNome);
+    }
 }

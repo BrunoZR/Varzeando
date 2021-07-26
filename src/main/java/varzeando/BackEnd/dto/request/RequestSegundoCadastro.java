@@ -1,4 +1,4 @@
-package varzeando.BackEnd.dto;
+package varzeando.BackEnd.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
@@ -15,17 +15,17 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @Getter
-public class RequestCadastro {
-
-    @Size(max = 50)
-    private String name;
+public class RequestSegundoCadastro {
 
     @Email
     @Size(max = 50)
     private String email;
 
-    private String password;
+    private String posicao;
 
-    @JsonFormat(pattern = "dd/MM/yyyy")
-    private Date dataNascimento;
+    @NotEmpty
+    private Double latitude;
+
+    @NotEmpty
+    private Double longitude;
 }

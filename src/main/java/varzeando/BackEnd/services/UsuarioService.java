@@ -1,18 +1,13 @@
 package varzeando.BackEnd.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import varzeando.BackEnd.dto.RequestCadastro;
-import varzeando.BackEnd.dto.RequestLogin;
-import varzeando.BackEnd.dto.RequestSegundoCadastro;
+import org.springframework.web.server.ResponseStatusException;
+import varzeando.BackEnd.dto.request.RequestCadastro;
+import varzeando.BackEnd.dto.request.RequestLogin;
+import varzeando.BackEnd.dto.request.RequestSegundoCadastro;
+import varzeando.BackEnd.exception.BadRequestException;
 import varzeando.BackEnd.models.Usuario;
 import varzeando.BackEnd.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -33,12 +26,13 @@ public class UsuarioService{
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRepository usuarioRepository;
 
-    public boolean autenticar(RequestLogin requestLogin){
-        Usuario user =usuarioRepository.findByEmail(requestLogin.getEmail());
+    public Usuario autenticar(RequestLogin requestLogin) throws Exception {
+        Usuario user =usuarioRepository.findByEmail(requestLogin.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, ("usuario não encontrado")));
         if(passwordEncoder.matches(requestLogin.getPassword(),user.getPassword()))
-            return true;
+            return user;
         else
-            return false;
+            throw new Exception("Senha incorreta");
     }
     public List<Usuario> listAll(){
         return usuarioRepository.findAll();
@@ -51,32 +45,27 @@ public class UsuarioService{
                .email(requestCadastro.getEmail())
                .password(passwordEncoded)
                .dataNascimento(requestCadastro.getDataNascimento())
-               .endereco(null)
+               .latitude((double) 0)
+               .longitude((double) 0)
                .posicao(null).build());
-        else throw new RuntimeException();
-
-
-
+        else throw new BadRequestException("Valores ivalidos");
     }
     public Usuario salvardois(RequestSegundoCadastro requestSegundoCadastro){
-        Usuario user=usuarioRepository.findByEmail(requestSegundoCadastro.getEmail());
-        Usuario userFim= usuarioRepository.save(Usuario.builder()
-                .name(user.getName())
-                .email(user.getEmail())
-                .password(user.getPassword())
-                .dataNascimento(user.getDataNascimento())
-                .endereco(requestSegundoCadastro.getEndereco())
-                .posicao(requestSegundoCadastro.getPosicao()).build());
-        usuarioRepository.delete(user);
-        return userFim;
+        Usuario user=usuarioRepository.findByEmail(requestSegundoCadastro.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ("valores ivalidos")));
+        user.setLatitude(requestSegundoCadastro.getLatitude());
+        user.setLongitude(requestSegundoCadastro.getLongitude());
+        user.setPosicao(requestSegundoCadastro.getPosicao());
+        return user;
     }
+
     public Integer verificaridade(Date data) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
         String x= sdf.format(data);
         Date y=sdf.parse(x);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(y);
-        int Anodata =calendar.get(calendar.YEAR);
+        int Anodata =calendar.get(calendar.YEAR)-1;
         int Mesdata =calendar.get(calendar.MONTH)+1;
         int Diadata =calendar.get(calendar.DATE);
       LocalDate localDate=LocalDate.of(Anodata,Mesdata,Diadata);
@@ -87,6 +76,11 @@ public class UsuarioService{
         }
         else
             throw new RuntimeException();
+    }
+
+    public String findUsuario(Long id){
+        String primeiroNome=usuarioRepository.findById(id).orElseThrow(()->new BadRequestException("Usuario não encontrado")).getName();
+        return primeiroNome.substring(0,primeiroNome.indexOf(" "));
     }
 
     }

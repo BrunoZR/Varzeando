@@ -1,4 +1,4 @@
-package varzeando.BackEnd.dto;
+package varzeando.BackEnd.dto.request;
 
 
 import lombok.*;

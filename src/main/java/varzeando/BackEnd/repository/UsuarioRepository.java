@@ -9,9 +9,11 @@ import varzeando.BackEnd.models.Usuario;
 
 import java.util.List;
 import java.util.Optional;
+
+
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    Usuario findByEmail(String email);
+    Optional<Usuario> findByEmail(String email);
     Usuario findByName(String name);
     boolean existsByEmail(String email);
 }
